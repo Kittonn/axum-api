@@ -1,22 +1,20 @@
-use std::time::Duration;
-
 use anyhow::Result;
-use sea_orm::{ConnectOptions, Database};
-
-const DATABASE_URL: &str = "";
+use axum_api::infra::app::create_app;
+use dotenvy::dotenv;
+use tokio::net::TcpListener;
+use tracing::info;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let mut opt = ConnectOptions::new(DATABASE_URL);
-    opt.max_connections(100)
-        .min_connections(5)
-        .connect_timeout(Duration::from_secs(8))
-        .acquire_timeout(Duration::from_secs(8))
-        .idle_timeout(Duration::from_secs(8))
-        .max_lifetime(Duration::from_secs(8))
-        .sqlx_logging(false);
+    dotenv().ok();
 
-    let db = Database::connect(opt).await?;
+    let app = create_app();
+
+    let listener = TcpListener::bind("127.0.0.1:4001").await?;
+
+    info!("Backend listening at {}", &listener.local_addr().unwrap());
+
+    axum::serve(listener, app).await.unwrap();
 
     Ok(())
 }
