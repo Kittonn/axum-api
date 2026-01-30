@@ -8,7 +8,11 @@ use axum::{
 };
 use tower_http::cors::CorsLayer;
 
+use crate::infra::setup::init_tracing;
+
 pub fn create_app() -> Router {
+    init_tracing();
+
     let cors = CorsLayer::new()
         .allow_methods([
             Method::GET,
