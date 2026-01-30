@@ -1,5 +1,5 @@
 use anyhow::Result;
-use axum_api::infra::app::create_app;
+use axum_api::infra::{app::create_app, config::AppConfig};
 use dotenvy::dotenv;
 use tokio::net::TcpListener;
 use tracing::info;
@@ -8,9 +8,11 @@ use tracing::info;
 async fn main() -> Result<()> {
     dotenv().ok();
 
+    let config = AppConfig::from_env();
     let app = create_app();
 
-    let listener = TcpListener::bind("127.0.0.1:4001").await?;
+    let addr = format!("0.0.0.0:{}", config.port);
+    let listener = TcpListener::bind(&addr).await?;
 
     info!("Backend listening at {}", &listener.local_addr().unwrap());
 
