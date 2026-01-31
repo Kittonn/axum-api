@@ -4,13 +4,15 @@ use axum::{
         Method,
         header::{AUTHORIZATION, CONTENT_TYPE},
     },
-    routing::get,
 };
 use tower_http::cors::CorsLayer;
 
-use crate::infra::setup::init_tracing;
+use crate::{
+    adapters::http::{app_state::AppState, routes::auth::auth_routes},
+    infra::setup::init_tracing,
+};
 
-pub fn create_app() -> Router {
+pub fn create_app(app_state: AppState) -> Router {
     init_tracing();
 
     let cors = CorsLayer::new()
@@ -25,6 +27,6 @@ pub fn create_app() -> Router {
         .allow_headers([CONTENT_TYPE, AUTHORIZATION]);
 
     Router::new()
-        .route("/", get(|| async { "Hello, World!" }))
+        .nest("/auth", auth_routes().with_state(app_state.clone()))
         .layer(cors)
 }
