@@ -24,20 +24,27 @@ impl PostgresUserRepo {
 
 #[async_trait]
 impl UserRepository for PostgresUserRepo {
-    async fn create(&self, user: &User) -> Result<(), String> {
-        let user_model = user::ActiveModel {
+    async fn create(&self, user: &User) -> Result<User, String> {
+        let model = user::ActiveModel {
             email: Set(user.email().to_string()),
             password: Set(user.password().to_string()),
             name: Set(user.name().to_string()),
             ..Default::default()
         };
 
-        user_model
+        let inserted = model
             .insert(self.db.as_ref())
             .await
             .map_err(|e| e.to_string())?;
 
-        Ok(())
+        Ok(User::from_db(
+            inserted.id,
+            inserted.email,
+            inserted.password,
+            inserted.name,
+            inserted.created_at.with_timezone(&Utc),
+            inserted.updated_at.with_timezone(&Utc),
+        ))
     }
 
     async fn find_by_email(&self, email: &str) -> Option<User> {

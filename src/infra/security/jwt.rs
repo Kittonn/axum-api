@@ -2,7 +2,7 @@ use chrono::{Duration, Utc};
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode};
 use serde::{Deserialize, Serialize};
 
-pub trait TokenProvider {
+pub trait TokenProvider: Send + Sync {
     fn generate_token(&self, user_id: &str, expiration: Duration) -> Result<String, String>;
     fn decode_token(&self, token: &str) -> Result<Claims, String>;
 }
