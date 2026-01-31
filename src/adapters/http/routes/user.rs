@@ -1,8 +1,7 @@
-use axum::{Extension, Json, Router, middleware, response::IntoResponse, routing::get};
+use axum::{Extension, Json, Router, response::IntoResponse, routing::get};
 use serde::Serialize;
 use uuid::Uuid;
 
-use crate::adapters::http::middlewares::auth_middleware::auth_middleware;
 use crate::{adapters::http::app_state::AppState, domain::entities::user::User};
 
 // adapters/http/routes/user.rs

@@ -10,5 +10,5 @@ pub struct AppState {
     pub config: Arc<AppConfig>,
     pub user_use_case: Arc<UserUseCase>,
     pub auth_use_case: Arc<AuthUseCase>,
-    pub token_provider: Arc<dyn TokenProvider>
+    pub token_provider: Arc<dyn TokenProvider>,
 }
