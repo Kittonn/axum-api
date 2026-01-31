@@ -38,6 +38,13 @@ impl MigrationTrait for Migration {
                             .not_null()
                             .default(Expr::current_timestamp()),
                     )
+                    .index(
+                        Index::create()
+                            .name("idx-users-email-unique")
+                            .table(User::Table)
+                            .col(User::Email)
+                            .unique(),
+                    )
                     .to_owned(),
             )
             .await?;
