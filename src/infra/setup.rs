@@ -26,13 +26,14 @@ pub async fn init_app_state() -> anyhow::Result<AppState> {
     let auth_use_case = AuthUseCase::new(
         Arc::new(user_repository),
         Arc::new(hasher),
-        Arc::new(token_provider),
+        Arc::new(token_provider.clone()),
     );
 
     Ok(AppState {
         config: Arc::new(config),
         user_use_case: Arc::new(user_use_case),
         auth_use_case: Arc::new(auth_use_case),
+        token_provider: Arc::new(token_provider),
     })
 }
 
