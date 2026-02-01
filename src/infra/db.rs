@@ -1,6 +1,6 @@
-use std::{env, time::Duration};
-
 use sea_orm::{ConnectOptions, Database, DatabaseConnection};
+use std::{env, time::Duration};
+use tracing::info;
 
 pub async fn init_db() -> anyhow::Result<DatabaseConnection> {
     let database_url = env::var("DATABASE_URL")?;
@@ -14,6 +14,8 @@ pub async fn init_db() -> anyhow::Result<DatabaseConnection> {
         .sqlx_logging(false);
 
     let db = Database::connect(opt).await?;
+
+    info!("Database connected");
 
     Ok(db)
 }

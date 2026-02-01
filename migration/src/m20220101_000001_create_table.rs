@@ -24,8 +24,8 @@ impl MigrationTrait for Migration {
                             .default(Expr::cust("uuid_generate_v4()")),
                     )
                     .col(ColumnDef::new(User::Email).string().not_null())
-                    .col(ColumnDef::new(User::Password).string())
-                    .col(ColumnDef::new(User::Name).string())
+                    .col(ColumnDef::new(User::Password).string().not_null())
+                    .col(ColumnDef::new(User::Name).string().not_null())
                     .col(
                         ColumnDef::new(User::CreatedAt)
                             .timestamp_with_time_zone()
@@ -37,6 +37,13 @@ impl MigrationTrait for Migration {
                             .timestamp_with_time_zone()
                             .not_null()
                             .default(Expr::current_timestamp()),
+                    )
+                    .index(
+                        Index::create()
+                            .name("idx-users-email-unique")
+                            .table(User::Table)
+                            .col(User::Email)
+                            .unique(),
                     )
                     .to_owned(),
             )
