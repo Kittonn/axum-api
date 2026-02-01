@@ -21,7 +21,7 @@ services:
     image: postgres:17
     restart: unless-stopped
     ports:
-      - "5433:5432"
+      - "5433:5432" 
     environment:
       POSTGRES_USER: sonarqube
       POSTGRES_PASSWORD: sonarqube
@@ -38,7 +38,7 @@ services:
       - sonarqube-network
 
   sonarqube:
-    image: sonarqube:community
+    image: sonarqube:enterprise
     restart: unless-stopped
     depends_on:
       postgres-sonarqube:
