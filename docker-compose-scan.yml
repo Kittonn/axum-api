@@ -1,0 +1,8 @@
+services:
+  sonar-scanner:
+    image: sonarsource/sonar-scanner-cli:latest
+    platform: linux/amd64
+    volumes:
+      - ./:/usr/src
+    working_dir: /usr/src
+    command: sonar-scanner
