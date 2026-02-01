@@ -2,9 +2,11 @@ use chrono::{Duration, Utc};
 use jsonwebtoken::{Algorithm, DecodingKey, EncodingKey, Header, Validation, decode, encode};
 use serde::{Deserialize, Serialize};
 
+use crate::application::app_error::AppError;
+
 pub trait TokenProvider: Send + Sync {
-    fn generate_token(&self, user_id: &str, expiration: Duration) -> Result<String, String>;
-    fn decode_token(&self, token: &str) -> Result<Claims, String>;
+    fn generate_token(&self, user_id: &str, expiration: Duration) -> Result<String, AppError>;
+    fn decode_token(&self, token: &str) -> Result<Claims, AppError>;
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -30,7 +32,7 @@ impl JwtTokenProvider {
 }
 
 impl TokenProvider for JwtTokenProvider {
-    fn generate_token(&self, user_id: &str, expiration: Duration) -> Result<String, String> {
+    fn generate_token(&self, user_id: &str, expiration: Duration) -> Result<String, AppError> {
         let now = Utc::now().timestamp();
 
         let claims = Claims {
@@ -41,13 +43,14 @@ impl TokenProvider for JwtTokenProvider {
 
         let header = Header::new(Algorithm::HS256);
 
-        encode(&header, &claims, &self.encoding).map_err(|e| e.to_string())
+        encode(&header, &claims, &self.encoding)
+            .map_err(|e| AppError::TokenGenerationFailed(e.to_string()))
     }
 
-    fn decode_token(&self, token: &str) -> Result<Claims, String> {
+    fn decode_token(&self, token: &str) -> Result<Claims, AppError> {
         match decode::<Claims>(token, &self.decoding, &Validation::default()) {
             Ok(data) => Ok(data.claims),
-            Err(e) => Err(e.to_string()),
+            Err(e) => Err(AppError::TokenParsingFailed(e.to_string())),
         }
     }
 }

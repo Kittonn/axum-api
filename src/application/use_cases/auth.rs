@@ -3,6 +3,7 @@ use std::sync::Arc;
 use chrono::Duration;
 
 use crate::{
+    application::app_error::{AppError, AppResult},
     domain::{entities::user::User, repositories::user::UserRepository},
     infra::security::{argon2::PasswordHasherTrait, jwt::TokenProvider},
 };
@@ -31,9 +32,12 @@ impl AuthUseCase {
         email: String,
         password: String,
         name: String,
-    ) -> Result<String, String> {
-        let hashed_password = self.hasher.hash_password(password.as_str())?;
+    ) -> AppResult<String> {
+        if self.user_repository.find_by_email(&email).await?.is_some() {
+            return Err(AppError::EmailAlreadyExists(email));
+        }
 
+        let hashed_password = self.hasher.hash_password(password.as_str())?;
         let user = User::new(email.clone(), hashed_password, name);
         let created_user = self.user_repository.create(&user).await?;
 
@@ -44,19 +48,19 @@ impl AuthUseCase {
         Ok(token)
     }
 
-    pub async fn login(&self, email: String, password: String) -> Result<String, String> {
+    pub async fn login(&self, email: String, password: String) -> AppResult<String> {
         let user = self
             .user_repository
             .find_by_email(&email)
-            .await
-            .ok_or("User not found".to_string())?;
+            .await?
+            .ok_or(AppError::UserNotFound)?;
 
         let is_valid = self
             .hasher
             .verify_password(password.as_str(), user.password())?;
 
         if !is_valid {
-            return Err("Invalid password".to_string());
+            return Err(AppError::Unauthorized);
         }
 
         let token = self

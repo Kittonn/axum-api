@@ -1,38 +1,38 @@
 use axum::{
     body::Body,
     extract::State,
-    http::{Request, Response, StatusCode, header},
+    http::{Request, Response, header},
     middleware::Next,
 };
 
-use crate::adapters::http::app_state::AppState;
+use crate::{adapters::http::app_state::AppState, application::app_error::AppError};
 
 pub async fn auth_middleware(
     State(state): State<AppState>,
     mut req: Request<Body>,
     next: Next,
-) -> Result<Response<Body>, StatusCode> {
+) -> Result<Response<Body>, AppError> {
     let headers = req
         .headers()
         .get(header::AUTHORIZATION)
-        .ok_or(StatusCode::UNAUTHORIZED)?;
+        .ok_or(AppError::Unauthorized)?;
 
-    let auth_str = headers.to_str().map_err(|_| StatusCode::UNAUTHORIZED)?;
+    let auth_str = headers.to_str().map_err(|_| AppError::Unauthorized)?;
 
     let token = auth_str
         .strip_prefix("Bearer ")
-        .ok_or(StatusCode::UNAUTHORIZED)?;
-
+        .ok_or(AppError::Unauthorized)?;
     let claims = state
         .token_provider
         .decode_token(token)
-        .map_err(|_| StatusCode::UNAUTHORIZED)?;
+        .map_err(|_| AppError::Unauthorized)?;
 
     let current_user = state
         .user_use_case
         .get_user_by_id(&claims.sub)
         .await
-        .ok_or(StatusCode::UNAUTHORIZED)?;
+        .map_err(|_| AppError::Unauthorized)?
+        .ok_or(AppError::Unauthorized)?;
 
     req.extensions_mut().insert(current_user);
 
