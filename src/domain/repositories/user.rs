@@ -1,8 +1,8 @@
-use crate::domain::entities::user::User;
+use crate::domain::{entities::user::User, repositories::error::RepositoryError};
 
 #[async_trait::async_trait]
 pub trait UserRepository: Send + Sync {
-    async fn create(&self, user: &User) -> Result<User, String>;
-    async fn find_by_email(&self, email: &str) -> Option<User>;
-    async fn find_by_id(&self, id: &str) -> Option<User>;
+    async fn create(&self, user: &User) -> Result<User, RepositoryError>;
+    async fn find_by_email(&self, email: &str) -> Result<Option<User>, RepositoryError>;
+    async fn find_by_id(&self, id: &str) -> Result<Option<User>, RepositoryError>;
 }
