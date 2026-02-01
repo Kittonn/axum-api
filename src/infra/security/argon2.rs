@@ -3,9 +3,11 @@ use argon2::{
     password_hash::{SaltString, rand_core::OsRng},
 };
 
+use crate::application::app_error::AppError;
+
 pub trait PasswordHasherTrait: Send + Sync {
-    fn hash_password(&self, password: &str) -> Result<String, String>;
-    fn verify_password(&self, password: &str, hash: &str) -> Result<bool, String>;
+    fn hash_password(&self, password: &str) -> Result<String, AppError>;
+    fn verify_password(&self, password: &str, hash: &str) -> Result<bool, AppError>;
 }
 
 #[derive(Default)]
@@ -14,21 +16,22 @@ pub struct Argon2PasswordHasher {
 }
 
 impl PasswordHasherTrait for Argon2PasswordHasher {
-    fn hash_password(&self, password: &str) -> Result<String, String> {
+    fn hash_password(&self, password: &str) -> Result<String, AppError> {
         let salt = SaltString::generate(&mut OsRng);
 
         self.hasher
             .hash_password(password.as_bytes(), &salt)
             .map(|hash| hash.to_string())
-            .map_err(|e| e.to_string())
+            .map_err(|e| AppError::PasswordHashingFailed(e.to_string()))
     }
 
-    fn verify_password(&self, password: &str, hash: &str) -> Result<bool, String> {
-        let parsed_hash = PasswordHash::new(hash).map_err(|e| e.to_string())?;
+    fn verify_password(&self, password: &str, hash: &str) -> Result<bool, AppError> {
+        let parsed_hash =
+            PasswordHash::new(hash).map_err(|e| AppError::PasswordHashingFailed(e.to_string()))?;
 
         self.hasher
             .verify_password(password.as_bytes(), &parsed_hash)
             .map(|_| true)
-            .map_err(|e| e.to_string())
+            .map_err(|e| AppError::PasswordVerificationFailed(e.to_string()))
     }
 }

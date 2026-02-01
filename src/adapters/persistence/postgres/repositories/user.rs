@@ -9,7 +9,10 @@ use uuid::Uuid;
 
 use crate::{
     adapters::persistence::postgres::entities::user,
-    domain::{entities::user::User, repositories::user::UserRepository},
+    domain::{
+        entities::user::User,
+        repositories::{error::RepositoryError, user::UserRepository},
+    },
 };
 
 #[derive(Clone)]
@@ -25,7 +28,7 @@ impl PostgresUserRepo {
 
 #[async_trait]
 impl UserRepository for PostgresUserRepo {
-    async fn create(&self, user: &User) -> Result<User, String> {
+    async fn create(&self, user: &User) -> Result<User, RepositoryError> {
         let model = user::ActiveModel {
             email: Set(user.email().to_string()),
             password: Set(user.password().to_string()),
@@ -33,10 +36,7 @@ impl UserRepository for PostgresUserRepo {
             ..Default::default()
         };
 
-        let inserted = model
-            .insert(self.db.as_ref())
-            .await
-            .map_err(|e| e.to_string())?;
+        let inserted = model.insert(self.db.as_ref()).await?;
 
         Ok(User::from_db(
             inserted.id,
@@ -48,14 +48,13 @@ impl UserRepository for PostgresUserRepo {
         ))
     }
 
-    async fn find_by_email(&self, email: &str) -> Option<User> {
+    async fn find_by_email(&self, email: &str) -> Result<Option<User>, RepositoryError> {
         let user_modal = user::Entity::find()
             .filter(user::Column::Email.eq(email))
             .one(self.db.as_ref())
-            .await
-            .ok()?;
+            .await?;
 
-        user_modal.map(|u| {
+        Ok(user_modal.map(|u| {
             User::from_db(
                 u.id,
                 u.email,
@@ -64,16 +63,15 @@ impl UserRepository for PostgresUserRepo {
                 u.created_at.with_timezone(&Utc),
                 u.updated_at.with_timezone(&Utc),
             )
-        })
+        }))
     }
 
-    async fn find_by_id(&self, id: &str) -> Option<User> {
-        let user_modal = user::Entity::find_by_id(Uuid::parse_str(id).ok()?)
-            .one(self.db.as_ref())
-            .await
-            .ok()?;
+    async fn find_by_id(&self, id: &str) -> Result<Option<User>, RepositoryError> {
+        let id = Uuid::parse_str(id).map_err(|_| RepositoryError::InvalidUuidFormat)?;
 
-        user_modal.map(|u| {
+        let user_modal = user::Entity::find_by_id(id).one(self.db.as_ref()).await?;
+
+        Ok(user_modal.map(|u| {
             User::from_db(
                 u.id,
                 u.email,
@@ -82,6 +80,6 @@ impl UserRepository for PostgresUserRepo {
                 u.created_at.with_timezone(&Utc),
                 u.updated_at.with_timezone(&Utc),
             )
-        })
+        }))
     }
 }

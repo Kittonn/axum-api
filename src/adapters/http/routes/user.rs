@@ -1,10 +1,13 @@
-use axum::{Extension, Json, Router, response::IntoResponse, routing::get};
+use axum::{Extension, Json, Router, routing::get};
 use serde::Serialize;
 use uuid::Uuid;
 
-use crate::{adapters::http::app_state::AppState, domain::entities::user::User};
+use crate::{
+    adapters::http::{app_state::AppState, response::ApiSuccessResponse},
+    application::app_error::AppError,
+    domain::entities::user::User,
+};
 
-// adapters/http/routes/user.rs
 pub fn user_routes() -> Router<AppState> {
     Router::new().route("/profile", get(get_profile))
 }
@@ -15,10 +18,12 @@ pub struct UserProfileResponse {
     pub email: String,
     pub name: String,
 }
-async fn get_profile(Extension(user): Extension<User>) -> impl IntoResponse {
-    Json(UserProfileResponse {
+async fn get_profile(
+    Extension(user): Extension<User>,
+) -> Result<Json<ApiSuccessResponse<UserProfileResponse>>, AppError> {
+    Ok(Json(ApiSuccessResponse::new(UserProfileResponse {
         id: *user.id(),
         email: user.email().to_string(),
         name: user.name().to_string(),
-    })
+    })))
 }
