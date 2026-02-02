@@ -1,6 +1,6 @@
-use redis::{AsyncCommands, aio::ConnectionManager};
-
 use crate::domain::repositories::token_cache::TokenCacheRepository;
+use redis::{AsyncCommands, aio::ConnectionManager};
+use uuid::Uuid;
 
 pub struct AuthTokenCacheRepository {
     conn: ConnectionManager,
@@ -24,13 +24,13 @@ impl AuthTokenCacheRepository {
 impl TokenCacheRepository for AuthTokenCacheRepository {
     async fn store_refresh_token(
         &self,
-        user_id: i32,
+        user_id: Uuid,
         token_id: &str,
         ttl_secs: u64,
     ) -> Result<(), crate::domain::repositories::error::RepositoryError> {
         let key = Self::refresh_key(token_id);
         let mut conn = self.conn.clone();
-        let _: () = conn.set_ex(key, user_id, ttl_secs).await?;
+        let _: () = conn.set_ex(key, user_id.to_string(), ttl_secs).await?;
 
         Ok(())
     }
@@ -40,7 +40,9 @@ impl TokenCacheRepository for AuthTokenCacheRepository {
         token_id: &str,
     ) -> Result<Option<String>, crate::domain::repositories::error::RepositoryError> {
         let mut conn = self.conn.clone();
-        let value = conn.get(Self::refresh_key(token_id)).await?;
+
+        let key = Self::refresh_key(token_id);
+        let value = conn.get(key).await?;
 
         Ok(value)
     }
@@ -64,8 +66,9 @@ impl TokenCacheRepository for AuthTokenCacheRepository {
     ) -> Result<bool, crate::domain::repositories::error::RepositoryError> {
         let mut conn = self.conn.clone();
 
-        let value = conn.get(Self::blacklist_key(jti)).await?;
+        let key = Self::blacklist_key(jti);
+        let exists = conn.exists(key).await?;
 
-        Ok(value)
+        Ok(exists)
     }
 }

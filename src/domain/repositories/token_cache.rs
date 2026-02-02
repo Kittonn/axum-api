@@ -1,10 +1,12 @@
 use crate::domain::repositories::error::RepositoryError;
 
+use uuid::Uuid;
+
 #[async_trait::async_trait]
-pub trait TokenCacheRepository {
+pub trait TokenCacheRepository: Send + Sync {
     async fn store_refresh_token(
         &self,
-        user_id: i32,
+        user_id: Uuid,
         token_id: &str,
         ttl_secs: u64,
     ) -> Result<(), RepositoryError>;

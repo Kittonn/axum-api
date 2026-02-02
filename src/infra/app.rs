@@ -32,7 +32,10 @@ pub fn create_app(app_state: AppState) -> Router {
         .allow_headers([CONTENT_TYPE, AUTHORIZATION]);
 
     Router::new()
-        .nest("/auth", auth_routes().with_state(app_state.clone()))
+        .nest(
+            "/auth",
+            auth_routes(app_state.clone()).with_state(app_state.clone()),
+        )
         .nest(
             "/users",
             user_routes()

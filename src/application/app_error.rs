@@ -14,6 +14,9 @@ pub enum AppError {
     #[error("Unauthorized")]
     Unauthorized,
 
+    #[error("Invalid token")]
+    InvalidToken,
+
     #[error("Token generation failed: {0}")]
     TokenGenerationFailed(String),
 
@@ -36,6 +39,7 @@ impl IntoResponse for AppError {
             AppError::EmailAlreadyExists(_) => (axum::http::StatusCode::CONFLICT, self.to_string()),
             AppError::UserNotFound => (axum::http::StatusCode::NOT_FOUND, self.to_string()),
             AppError::Unauthorized => (axum::http::StatusCode::UNAUTHORIZED, self.to_string()),
+            AppError::InvalidToken => (axum::http::StatusCode::UNAUTHORIZED, self.to_string()),
             _ => (
                 axum::http::StatusCode::INTERNAL_SERVER_ERROR,
                 "Internal Server Error".to_string(),
