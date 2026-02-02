@@ -3,3 +3,4 @@ pub mod config;
 pub mod db;
 pub mod security;
 pub mod setup;
+pub mod redis;

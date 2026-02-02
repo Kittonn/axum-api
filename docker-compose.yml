@@ -54,10 +54,25 @@ services:
     networks:
       - sonarqube-network
 
+  redis:
+    image: redis:latest
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a strong-password ping | grep PONG"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    command: ["redis-server", "--requirepass", "strong-password"]
+    volumes:
+      - redis_data:/data
+
 volumes:
   postgres_data:
   postgres_sonarqube_data:
   sonarqube_data:
+  redis_data:
 
 networks:
   sonarqube-network:
