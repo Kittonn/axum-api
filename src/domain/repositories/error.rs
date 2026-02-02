@@ -7,4 +7,7 @@ pub enum RepositoryError {
 
     #[error("Invalid UUID format")]
     InvalidUuidFormat,
+
+    #[error("Redis failure: {0}")]
+    RedisFailure(#[from] redis::RedisError),
 }

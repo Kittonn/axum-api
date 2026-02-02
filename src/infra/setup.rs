@@ -4,12 +4,16 @@ use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberI
 
 use crate::{
     adapters::{
-        http::app_state::AppState, persistence::postgres::repositories::user::PostgresUserRepo,
+        http::app_state::AppState,
+        persistence::{
+            postgres::repositories::user::PostgresUserRepo, redis::token::AuthTokenCacheRepository,
+        },
     },
     application::use_cases::{auth::AuthUseCase, user::UserUseCase},
     infra::{
         config::AppConfig,
         db::init_db,
+        redis::init_redis,
         security::{argon2::Argon2PasswordHasher, jwt::JwtTokenProvider},
     },
 };
@@ -20,11 +24,15 @@ pub async fn init_app_state() -> anyhow::Result<AppState> {
     let token_provider = JwtTokenProvider::new(config.jwt_secret.as_str());
 
     let database = Arc::new(init_db().await?);
+    let redis_client = init_redis(&config.redis).await?;
+
     let user_repository = PostgresUserRepo::new(database.clone());
+    let token_cache_repository = AuthTokenCacheRepository::new(redis_client.clone());
 
     let user_use_case = UserUseCase::new(Arc::new(user_repository.clone()));
     let auth_use_case = AuthUseCase::new(
         Arc::new(user_repository),
+        Arc::new(token_cache_repository),
         Arc::new(hasher),
         Arc::new(token_provider.clone()),
     );
