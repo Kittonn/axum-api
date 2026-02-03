@@ -1,5 +1,10 @@
+use crate::adapters::http::{
+    dto::validators::validate_uuid::validate_uuid, extractors::validate_json::ValidateJson,
+};
 use axum::{Extension, Json, Router, extract::State, middleware, routing::post};
+
 use serde::{Deserialize, Serialize};
+use validator::Validate;
 
 use crate::{
     adapters::http::{
@@ -27,10 +32,15 @@ pub fn auth_routes(state: AppState) -> Router<AppState> {
     public_routes.merge(protected_routes)
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Validate)]
 pub struct RegisterRequest {
+    #[validate(length(min = 1, max = 100, message = "Name must be 1-100 characters"))]
     name: String,
+
+    #[validate(email(message = "Invalid email format"))]
     email: String,
+
+    #[validate(length(min = 8, message = "Password must be at least 8 characters"))]
     password: String,
 }
 
@@ -40,20 +50,24 @@ pub struct CredentialsResponse {
     refresh_token: String,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Validate)]
 pub struct LoginRequest {
+    #[validate(email(message = "Invalid email format"))]
     email: String,
+
+    #[validate(length(min = 8, message = "Password must be at least 8 characters"))]
     password: String,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Validate)]
 pub struct RefreshRequest {
+    #[validate(custom(function = "validate_uuid"))]
     refresh_token: String,
 }
 
 async fn register(
     State(state): State<AppState>,
-    Json(payload): Json<RegisterRequest>,
+    ValidateJson(payload): ValidateJson<RegisterRequest>,
 ) -> Result<Json<ApiSuccessResponse<CredentialsResponse>>, AppError> {
     let (access_token, refresh_token) = state
         .auth_use_case
@@ -68,7 +82,7 @@ async fn register(
 
 async fn login(
     State(state): State<AppState>,
-    Json(payload): Json<LoginRequest>,
+    ValidateJson(payload): ValidateJson<LoginRequest>,
 ) -> Result<Json<ApiSuccessResponse<CredentialsResponse>>, AppError> {
     let (access_token, refresh_token) = state
         .auth_use_case
@@ -83,7 +97,7 @@ async fn login(
 
 async fn refresh(
     State(state): State<AppState>,
-    Json(payload): Json<RefreshRequest>,
+    ValidateJson(payload): ValidateJson<RefreshRequest>,
 ) -> Result<Json<ApiSuccessResponse<CredentialsResponse>>, AppError> {
     let (access_token, refresh_token) = state
         .auth_use_case

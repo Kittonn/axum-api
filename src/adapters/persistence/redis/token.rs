@@ -1,4 +1,4 @@
-use crate::domain::repositories::token_cache::TokenCacheRepository;
+use crate::domain::repositories::{error::RepositoryError, token_cache::TokenCacheRepository};
 use redis::{AsyncCommands, aio::ConnectionManager};
 use uuid::Uuid;
 
@@ -27,7 +27,7 @@ impl TokenCacheRepository for AuthTokenCacheRepository {
         user_id: Uuid,
         token_id: &str,
         ttl_secs: u64,
-    ) -> Result<(), crate::domain::repositories::error::RepositoryError> {
+    ) -> Result<(), RepositoryError> {
         let key = Self::refresh_key(token_id);
         let mut conn = self.conn.clone();
         let _: () = conn.set_ex(key, user_id.to_string(), ttl_secs).await?;
@@ -35,10 +35,7 @@ impl TokenCacheRepository for AuthTokenCacheRepository {
         Ok(())
     }
 
-    async fn get_refresh_token(
-        &self,
-        token_id: &str,
-    ) -> Result<Option<String>, crate::domain::repositories::error::RepositoryError> {
+    async fn get_refresh_token(&self, token_id: &str) -> Result<Option<String>, RepositoryError> {
         let mut conn = self.conn.clone();
 
         let key = Self::refresh_key(token_id);
@@ -51,7 +48,7 @@ impl TokenCacheRepository for AuthTokenCacheRepository {
         &self,
         jti: &str,
         ttl_secs: u64,
-    ) -> Result<(), crate::domain::repositories::error::RepositoryError> {
+    ) -> Result<(), RepositoryError> {
         let mut conn = self.conn.clone();
 
         let key = Self::blacklist_key(jti);
@@ -60,10 +57,7 @@ impl TokenCacheRepository for AuthTokenCacheRepository {
         Ok(())
     }
 
-    async fn is_access_token_blacklisted(
-        &self,
-        jti: &str,
-    ) -> Result<bool, crate::domain::repositories::error::RepositoryError> {
+    async fn is_access_token_blacklisted(&self, jti: &str) -> Result<bool, RepositoryError> {
         let mut conn = self.conn.clone();
 
         let key = Self::blacklist_key(jti);

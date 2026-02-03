@@ -1,5 +1,10 @@
-use axum::response::{IntoResponse, Response};
+use axum::{
+    extract::rejection::JsonRejection,
+    http::StatusCode,
+    response::{IntoResponse, Response},
+};
 use thiserror::Error;
+use validator::ValidationErrors;
 
 use crate::domain::repositories::error::RepositoryError;
 
@@ -31,17 +36,25 @@ pub enum AppError {
 
     #[error(transparent)]
     RepositoryError(#[from] RepositoryError),
+
+    #[error("Validation error: {0}")]
+    ValidationError(#[from] ValidationErrors),
+
+    #[error(transparent)]
+    JsonRejection(#[from] JsonRejection),
 }
 
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
         let (status_code, error_message) = match self {
-            AppError::EmailAlreadyExists(_) => (axum::http::StatusCode::CONFLICT, self.to_string()),
-            AppError::UserNotFound => (axum::http::StatusCode::NOT_FOUND, self.to_string()),
-            AppError::Unauthorized => (axum::http::StatusCode::UNAUTHORIZED, self.to_string()),
-            AppError::InvalidToken => (axum::http::StatusCode::UNAUTHORIZED, self.to_string()),
+            AppError::EmailAlreadyExists(_) => (StatusCode::CONFLICT, self.to_string()),
+            AppError::UserNotFound => (StatusCode::NOT_FOUND, self.to_string()),
+            AppError::Unauthorized => (StatusCode::UNAUTHORIZED, self.to_string()),
+            AppError::InvalidToken => (StatusCode::UNAUTHORIZED, self.to_string()),
+            AppError::ValidationError(errors) => (StatusCode::BAD_REQUEST, errors.to_string()),
+            AppError::JsonRejection(rejection) => (StatusCode::BAD_REQUEST, rejection.to_string()),
             _ => (
-                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                StatusCode::INTERNAL_SERVER_ERROR,
                 "Internal Server Error".to_string(),
             ),
         };
