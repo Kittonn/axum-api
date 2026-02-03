@@ -1,4 +1,9 @@
-use axum::response::{IntoResponse, Response};
+use axum::{
+    Json,
+    extract::rejection::JsonRejection,
+    http::StatusCode,
+    response::{IntoResponse, Response},
+};
 use thiserror::Error;
 
 use crate::domain::repositories::error::RepositoryError;
@@ -31,26 +36,47 @@ pub enum AppError {
 
     #[error(transparent)]
     RepositoryError(#[from] RepositoryError),
+
+    #[error("Validation failed")]
+    ValidationError(Vec<String>),
+
+    #[error(transparent)]
+    JsonRejection(#[from] JsonRejection),
+}
+
+impl AppError {
+    fn status_code(&self) -> StatusCode {
+        match self {
+            AppError::EmailAlreadyExists(_) => StatusCode::CONFLICT,
+            AppError::UserNotFound => StatusCode::NOT_FOUND,
+            AppError::Unauthorized => StatusCode::UNAUTHORIZED,
+            AppError::InvalidToken => StatusCode::UNAUTHORIZED,
+            AppError::ValidationError(_) => StatusCode::UNPROCESSABLE_ENTITY,
+            AppError::JsonRejection(_) => StatusCode::BAD_REQUEST,
+            _ => StatusCode::INTERNAL_SERVER_ERROR,
+        }
+    }
+
+    fn details(&self) -> Option<Vec<String>> {
+        match self {
+            AppError::ValidationError(errors) => Some(errors.clone()),
+            _ => None,
+        }
+    }
 }
 
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
-        let (status_code, error_message) = match self {
-            AppError::EmailAlreadyExists(_) => (axum::http::StatusCode::CONFLICT, self.to_string()),
-            AppError::UserNotFound => (axum::http::StatusCode::NOT_FOUND, self.to_string()),
-            AppError::Unauthorized => (axum::http::StatusCode::UNAUTHORIZED, self.to_string()),
-            AppError::InvalidToken => (axum::http::StatusCode::UNAUTHORIZED, self.to_string()),
-            _ => (
-                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
-                "Internal Server Error".to_string(),
-            ),
-        };
+        let status = self.status_code();
 
         let body = serde_json::json!({
-            "error": error_message,
+            "error": {
+                "message": self.to_string(),
+                "details": self.details(),
+            }
         });
 
-        (status_code, axum::Json(body)).into_response()
+        (status, Json(body)).into_response()
     }
 }
 
