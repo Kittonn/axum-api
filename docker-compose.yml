@@ -68,11 +68,22 @@ services:
     volumes:
       - redis_data:/data
 
+  mssql:
+    image: mcr.microsoft.com/mssql/rhel/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "YourStrong!Passw0rd"
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+
 volumes:
   postgres_data:
   postgres_sonarqube_data:
   sonarqube_data:
   redis_data:
+  mssql_data:
 
 networks:
   sonarqube-network:

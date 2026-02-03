@@ -5,6 +5,7 @@ pub struct AppConfig {
     pub port: u16,
     pub jwt_secret: String,
     pub redis: RedisConfig,
+    pub mssql_url: String,
 }
 
 #[derive(Debug, Clone)]
@@ -32,10 +33,13 @@ impl AppConfig {
             password: env::var("REDIS_PASSWORD").ok().filter(|v| !v.is_empty()),
         };
 
+        let mssql_url = env::var("MSSQL_DATABASE_URL").expect("MSSQL_DATABASE_URL must be set");
+
         Self {
             port,
             jwt_secret,
             redis,
+            mssql_url,
         }
     }
 }

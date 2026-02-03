@@ -6,13 +6,14 @@ use crate::{
     adapters::{
         http::app_state::AppState,
         persistence::{
-            postgres::repositories::user::PostgresUserRepo, redis::token::AuthTokenCacheRepository,
+            mssql::repositories::user::MssqlUserRepo, redis::token::AuthTokenCacheRepository,
         },
     },
     application::use_cases::{auth::AuthUseCase, user::UserUseCase},
     infra::{
         config::AppConfig,
-        db::init_db,
+        /* postgres::init_postgres_db, */
+        mssql::init_mssql_db,
         redis::init_redis,
         security::{argon2::Argon2PasswordHasher, jwt::JwtTokenProvider},
     },
@@ -23,10 +24,14 @@ pub async fn init_app_state() -> anyhow::Result<AppState> {
     let hasher = Argon2PasswordHasher::default();
     let token_provider = JwtTokenProvider::new(config.jwt_secret.as_str());
 
-    let database = Arc::new(init_db().await?);
+    // let postgres = Arc::new(init_postgres_db().await?);
+    let mssql = Arc::new(init_mssql_db(&config.mssql_url).await?);
+
     let redis_client = init_redis(&config.redis).await?;
 
-    let user_repository = PostgresUserRepo::new(database.clone());
+    // let user_repository = PostgresUserRepo::new(postgres.clone());
+    let user_repository = MssqlUserRepo::new(mssql.as_ref().clone());
+
     let token_cache_repository = AuthTokenCacheRepository::new(redis_client.clone());
 
     let user_use_case = UserUseCase::new(Arc::new(user_repository.clone()));

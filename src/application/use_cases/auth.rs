@@ -72,6 +72,8 @@ impl AuthUseCase {
             .await?
             .ok_or(AppError::UserNotFound)?;
 
+        println!("current user: {:#?}", user);
+
         let is_valid = self
             .hasher
             .verify_password(password.as_str(), user.password())?;
