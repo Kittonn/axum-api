@@ -2,8 +2,8 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum RepositoryError {
-    #[error("Database failure: {0}")]
-    DatabaseFailure(#[from] sea_orm::DbErr),
+    #[error("SQL failure: {0}")]
+    SqlFailure(#[from] sqlx::Error),
 
     #[error("Invalid UUID format")]
     InvalidUuidFormat,
