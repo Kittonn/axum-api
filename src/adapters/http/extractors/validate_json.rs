@@ -17,8 +17,29 @@ where
     type Rejection = AppError;
 
     async fn from_request(req: Request, state: &S) -> Result<Self, Self::Rejection> {
-        let Json(payload) = Json::<T>::from_request(req, state).await?;
-        payload.validate().map_err(AppError::ValidationError)?;
-        Ok(ValidateJson(payload))
+        match Json::<T>::from_request(req, state).await {
+            Ok(Json(payload)) => {
+                if let Err(e) = payload.validate() {
+                    let error_messages: Vec<String> = e
+                        .field_errors()
+                        .into_iter()
+                        .flat_map(|(field, field_errors)| {
+                            field_errors.iter().map(move |error| {
+                                if let Some(message) = &error.message {
+                                    message.to_string()
+                                } else {
+                                    format!("{} is invalid", field)
+                                }
+                            })
+                        })
+                        .collect();
+
+                    return Err(AppError::ValidationError(error_messages));
+                }
+
+                Ok(ValidateJson(payload))
+            }
+            Err(rejection) => Err(AppError::JsonRejection(rejection)),
+        }
     }
 }
