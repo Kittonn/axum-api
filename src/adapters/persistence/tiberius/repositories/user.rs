@@ -24,26 +24,33 @@ impl TiberiusUserRepository {
         let id_str: &str = row
             .get("id")
             .ok_or_else(|| RepositoryError::ConversionError("Missing id column".to_string()))?;
+
         let email: &str = row
             .get("email")
             .ok_or_else(|| RepositoryError::ConversionError("Missing email column".to_string()))?;
+
         let password: &str = row.get("password").ok_or_else(|| {
             RepositoryError::ConversionError("Missing password column".to_string())
         })?;
+
         let name: &str = row
             .get("name")
             .ok_or_else(|| RepositoryError::ConversionError("Missing name column".to_string()))?;
+
         let created_at_str: &str = row.get("created_at").ok_or_else(|| {
             RepositoryError::ConversionError("Missing created_at column".to_string())
         })?;
+
         let updated_at_str: &str = row.get("updated_at").ok_or_else(|| {
             RepositoryError::ConversionError("Missing updated_at column".to_string())
         })?;
 
         let id = Uuid::parse_str(id_str).map_err(|_| RepositoryError::InvalidUuidFormat)?;
+
         let created_at = NaiveDateTime::parse_from_str(created_at_str, "%Y-%m-%dT%H:%M:%S.%f")
             .map_err(|e| RepositoryError::ConversionError(format!("Invalid created_at: {}", e)))?
             .and_utc();
+
         let updated_at = NaiveDateTime::parse_from_str(updated_at_str, "%Y-%m-%dT%H:%M:%S.%f")
             .map_err(|e| RepositoryError::ConversionError(format!("Invalid updated_at: {}", e)))?
             .and_utc();
