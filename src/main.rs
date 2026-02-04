@@ -1,9 +1,13 @@
+use std::sync::Arc;
+
 use anyhow::Result;
 use axum_api::{
-    adapters::grpc::user_service::{
-        UserService, user_grpc::user_service_server::UserServiceServer,
+    adapters::{
+        grpc::user_service::{UserService, user_grpc::user_service_server::UserServiceServer},
+        messaging::kafka::{consumer::KafkaConsumer, topics},
     },
-    infra::{app::create_app, setup::init_app_state},
+    application::event_handles::welcome_email::WelcomeEmailHandler,
+    infra::{app::create_app, kafka::init_kafka_consumer, setup::init_app_state},
 };
 use dotenvy::dotenv;
 use tokio::net::TcpListener;
@@ -28,6 +32,17 @@ async fn main() -> Result<()> {
             .serve(grpc_addr)
             .await
             .unwrap();
+    });
+
+    let kafka_consumer = init_kafka_consumer(&app_state.config.kafka_brokers, "user-service")?;
+    let welcome_email_handler = Arc::new(WelcomeEmailHandler);
+
+    let consumer = KafkaConsumer::new(kafka_consumer)
+        .register_handler(topics::USER_CREATED, welcome_email_handler);
+
+    tokio::spawn(async move {
+        info!("Starting Kafka Consumer...");
+        consumer.start().await;
     });
 
     let addr = format!("[::]:{}", app_state.config.port);

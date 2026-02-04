@@ -7,16 +7,19 @@ use crate::{
     application::app_error::{AppError, AppResult},
     domain::{
         entities::user::User,
+        events::{user::UserCreated, user::UserEventPublisher},
         repositories::{token_cache::TokenCacheRepository, user::UserRepository},
     },
     infra::security::{argon2::PasswordHasherTrait, jwt::TokenProvider},
 };
+use tracing::error;
 
 pub struct AuthUseCase {
     hasher: Arc<dyn PasswordHasherTrait>,
     user_repository: Arc<dyn UserRepository>,
     token_cache_repository: Arc<dyn TokenCacheRepository>,
     token_provider: Arc<dyn TokenProvider>,
+    event_publisher: Arc<dyn UserEventPublisher>,
 }
 
 impl AuthUseCase {
@@ -25,12 +28,14 @@ impl AuthUseCase {
         token_cache_repository: Arc<dyn TokenCacheRepository>,
         hasher: Arc<dyn PasswordHasherTrait>,
         token_provider: Arc<dyn TokenProvider>,
+        event_publisher: Arc<dyn UserEventPublisher>,
     ) -> Self {
         Self {
             user_repository,
             token_cache_repository,
             hasher,
             token_provider,
+            event_publisher,
         }
     }
 
@@ -61,6 +66,15 @@ impl AuthUseCase {
                 Duration::days(7).num_seconds() as u64,
             )
             .await?;
+
+        let event = UserCreated {
+            user_id: *created_user.id(),
+            email: created_user.email().to_string(),
+        };
+
+        if let Err(e) = self.event_publisher.publish_user_created(event).await {
+            error!("Failed to publish UserCreated event: {}", e);
+        }
 
         Ok((access_token, refresh_token))
     }
