@@ -4,7 +4,7 @@ use std::sync::Arc;
 use futures::stream::StreamExt;
 
 use rdkafka::{
-    consumer::{Consumer, StreamConsumer},
+    consumer::{CommitMode, Consumer, StreamConsumer},
     message::Message,
 };
 use tracing::{error, info, warn};
@@ -61,11 +61,18 @@ impl KafkaConsumer {
                     info!("Received message on topic '{}'", topic);
 
                     match self.handlers.get(topic) {
-                        Some(handler) => {
-                            if let Err(e) = handler.handle(payload).await {
+                        Some(handler) => match handler.handle(payload).await {
+                            Ok(_) => {
+                                if let Err(e) =
+                                    self.consumer.commit_message(&message, CommitMode::Async)
+                                {
+                                    error!("Failed to commit message: {}", e);
+                                }
+                            }
+                            Err(e) => {
                                 error!("Handler failed for topic '{}': {}", topic, e);
                             }
-                        }
+                        },
                         None => {
                             warn!("No handler registered for topic '{}'", topic);
                         }
