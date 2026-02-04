@@ -1,27 +1,27 @@
 use async_trait::async_trait;
 
 use crate::{
-    adapters::persistence::mssql::entities::user::UserEntity,
+    adapters::persistence::sqlx::entities::user::UserEntity,
     domain::{
         entities::user::User,
         repositories::{error::RepositoryError, user::UserRepository},
     },
-    infra::mssql::MssqlPool,
+    infra::mssql_sqlx::MssqlPool,
 };
 
 #[derive(Clone)]
-pub struct MssqlUserRepo {
+pub struct SqlXUserRepository {
     pool: MssqlPool,
 }
 
-impl MssqlUserRepo {
+impl SqlXUserRepository {
     pub fn new(pool: MssqlPool) -> Self {
         Self { pool }
     }
 }
 
 #[async_trait]
-impl UserRepository for MssqlUserRepo {
+impl UserRepository for SqlXUserRepository {
     async fn create(&self, user: &User) -> Result<User, RepositoryError> {
         let row = sqlx::query_as::<_, UserEntity>(
             r#"
