@@ -6,13 +6,14 @@ use crate::{
     adapters::{
         http::app_state::AppState,
         persistence::{
-            redis::token::AuthTokenCacheRepository, sqlx::repositories::user::SqlXUserRepository,
+            redis::token::AuthTokenCacheRepository,
+            tiberius::repositories::user::TiberiusUserRepository,
         },
     },
     application::use_cases::{auth::AuthUseCase, user::UserUseCase},
     infra::{
         config::AppConfig,
-        mssql::init_mssql_db,
+        mssql_tiberius::init_mssql_tiberius,
         redis::init_redis,
         security::{argon2::Argon2PasswordHasher, jwt::JwtTokenProvider},
     },
@@ -23,11 +24,12 @@ pub async fn init_app_state() -> anyhow::Result<AppState> {
     let hasher = Argon2PasswordHasher::default();
     let token_provider = JwtTokenProvider::new(config.jwt_secret.as_str());
 
-    let mssql = Arc::new(init_mssql_db(&config.mssql_url).await?);
+    let mssql_pool = init_mssql_tiberius(&config.mssql).await?;
+    // let mssql_pool = init_mssql_sqlx(&config.mssql).await?;
 
     let redis_client = init_redis(&config.redis).await?;
-
-    let user_repository = SqlXUserRepository::new(mssql.as_ref().clone());
+    // let user_repository = SqlXUserRepository::new(mssql_pool);
+    let user_repository = TiberiusUserRepository::new(mssql_pool);
 
     let token_cache_repository = AuthTokenCacheRepository::new(redis_client.clone());
 

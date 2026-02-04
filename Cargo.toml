@@ -9,6 +9,8 @@ argon2 = "0.5.3"
 async-trait = "0.1.89"
 axum = "0.8.8"
 axum-valid = "0.24.0"
+bb8 = "0.9.1"
+bb8-tiberius = "0.16.0"
 chrono = "0.4.43"
 dotenvy = "0.15.7"
 jsonwebtoken = { version = "10.3.0", features = ["rust_crypto"] }
@@ -24,7 +26,9 @@ sqlx = { version = "0.6.3", features = [
   "uuid",
 ] }
 thiserror = "2.0.18"
+tiberius = { version = "0.12.3", default-features = false, features = ["tds73", "chrono", "rustls"] }
 tokio = { version = "1.49.0", features = ["full"] }
+tokio-util = { version = "0.7.18", features = ["compat"] }
 tonic = "0.12"
 tower-http = { version = "0.6.8", features = ["cors"] }
 tracing = "0.1.44"

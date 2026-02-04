@@ -5,7 +5,7 @@ pub struct AppConfig {
     pub port: u16,
     pub jwt_secret: String,
     pub redis: RedisConfig,
-    pub mssql_url: String,
+    pub mssql: MssqlConfig,
 }
 
 #[derive(Debug, Clone)]
@@ -13,6 +13,15 @@ pub struct RedisConfig {
     pub host: String,
     pub port: u16,
     pub password: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct MssqlConfig {
+    pub host: String,
+    pub port: u16,
+    pub database: String,
+    pub username: String,
+    pub password: String,
 }
 
 impl AppConfig {
@@ -33,13 +42,22 @@ impl AppConfig {
             password: env::var("REDIS_PASSWORD").ok().filter(|v| !v.is_empty()),
         };
 
-        let mssql_url = env::var("MSSQL_DATABASE_URL").expect("MSSQL_DATABASE_URL must be set");
+        let mssql = MssqlConfig {
+            host: env::var("MSSQL_HOST").expect("MSSQL_HOST must be set"),
+            port: env::var("MSSQL_PORT")
+                .unwrap_or_else(|_| "1433".into())
+                .parse()
+                .expect("MSSQL_PORT must be a number"),
+            database: env::var("MSSQL_DATABASE").expect("MSSQL_DATABASE must be set"),
+            username: env::var("MSSQL_USERNAME").expect("MSSQL_USERNAME must be set"),
+            password: env::var("MSSQL_PASSWORD").expect("MSSQL_PASSWORD must be set"),
+        };
 
         Self {
             port,
             jwt_secret,
             redis,
-            mssql_url,
+            mssql,
         }
     }
 }

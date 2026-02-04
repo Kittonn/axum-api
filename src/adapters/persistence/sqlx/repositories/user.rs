@@ -6,7 +6,7 @@ use crate::{
         entities::user::User,
         repositories::{error::RepositoryError, user::UserRepository},
     },
-    infra::mssql::MssqlPool,
+    infra::mssql_sqlx::MssqlPool,
 };
 
 #[derive(Clone)]
