@@ -5,6 +5,7 @@ use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberI
 use crate::{
     adapters::{
         http::app_state::AppState,
+        messaging::kafka::producer::KafkaProducer,
         persistence::{
             redis::token::AuthTokenCacheRepository,
             tiberius::repositories::user::TiberiusUserRepository,
@@ -13,6 +14,7 @@ use crate::{
     application::use_cases::{auth::AuthUseCase, user::UserUseCase},
     infra::{
         config::AppConfig,
+        kafka::init_kafka_producer,
         mssql_tiberius::init_mssql_tiberius,
         redis::init_redis,
         security::{argon2::Argon2PasswordHasher, jwt::JwtTokenProvider},
@@ -28,6 +30,10 @@ pub async fn init_app_state() -> anyhow::Result<AppState> {
     // let mssql_pool = init_mssql_sqlx(&config.mssql).await?;
 
     let redis_client = init_redis(&config.redis).await?;
+
+    let kafka_producer = init_kafka_producer(&config.kafka_brokers)?;
+    let user_event_producer = KafkaProducer::new(kafka_producer);
+
     // let user_repository = SqlXUserRepository::new(mssql_pool);
     let user_repository = TiberiusUserRepository::new(mssql_pool);
 
@@ -39,6 +45,7 @@ pub async fn init_app_state() -> anyhow::Result<AppState> {
         Arc::new(token_cache_repository),
         Arc::new(hasher),
         Arc::new(token_provider.clone()),
+        Arc::new(user_event_producer),
     );
 
     Ok(AppState {

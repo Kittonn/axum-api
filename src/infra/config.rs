@@ -6,6 +6,7 @@ pub struct AppConfig {
     pub jwt_secret: String,
     pub redis: RedisConfig,
     pub mssql: MssqlConfig,
+    pub kafka_brokers: String,
 }
 
 #[derive(Debug, Clone)]
@@ -53,11 +54,14 @@ impl AppConfig {
             password: env::var("MSSQL_PASSWORD").expect("MSSQL_PASSWORD must be set"),
         };
 
+        let kafka_brokers = env::var("KAFKA_BROKERS").unwrap_or_else(|_| "localhost:9092".into());
+
         Self {
             port,
             jwt_secret,
             redis,
             mssql,
+            kafka_brokers,
         }
     }
 }

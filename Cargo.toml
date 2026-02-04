@@ -13,6 +13,7 @@ bb8 = "0.9.1"
 bb8-tiberius = "0.16.0"
 chrono = "0.4.43"
 dotenvy = "0.15.7"
+futures = "0.3.31"
 jsonwebtoken = { version = "10.3.0", features = ["rust_crypto"] }
 prost = "0.13"
 rdkafka = { version = "0.36", features = ["cmake-build"] }
