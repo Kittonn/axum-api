@@ -5,7 +5,10 @@ use uuid::Uuid;
 use crate::{
     domain::{
         entities::user::User,
-        repositories::{error::RepositoryError, user::UserRepository},
+        repositories::{
+            error::{RepositoryError, RepositoryResult},
+            user::UserRepository,
+        },
     },
     infra::mssql_tiberius::TiberiusPool,
 };
@@ -20,7 +23,7 @@ impl TiberiusUserRepository {
         Self { pool }
     }
 
-    fn map_row(row: tiberius::Row) -> Result<User, RepositoryError> {
+    fn map_row(row: tiberius::Row) -> RepositoryResult<User> {
         let id_str: &str = row
             .get("id")
             .ok_or_else(|| RepositoryError::ConversionError("Missing id column".to_string()))?;
@@ -68,7 +71,7 @@ impl TiberiusUserRepository {
 
 #[async_trait]
 impl UserRepository for TiberiusUserRepository {
-    async fn create(&self, user: &User) -> Result<User, RepositoryError> {
+    async fn create(&self, user: &User) -> RepositoryResult<User> {
         let mut conn = self.pool.get().await?;
 
         let row = conn
@@ -92,7 +95,7 @@ impl UserRepository for TiberiusUserRepository {
         Self::map_row(result)
     }
 
-    async fn find_by_email(&self, email: &str) -> Result<Option<User>, RepositoryError> {
+    async fn find_by_email(&self, email: &str) -> RepositoryResult<Option<User>> {
         let mut conn = self.pool.get().await?;
 
         let row = conn
@@ -120,7 +123,7 @@ impl UserRepository for TiberiusUserRepository {
         }
     }
 
-    async fn find_by_id(&self, id: &str) -> Result<Option<User>, RepositoryError> {
+    async fn find_by_id(&self, id: &str) -> RepositoryResult<Option<User>> {
         let mut conn = self.pool.get().await?;
 
         let row = conn

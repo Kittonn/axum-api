@@ -4,7 +4,7 @@ use crate::{
     adapters::persistence::sqlx::entities::user::UserEntity,
     domain::{
         entities::user::User,
-        repositories::{error::RepositoryError, user::UserRepository},
+        repositories::{error::RepositoryResult, user::UserRepository},
     },
     infra::mssql_sqlx::MssqlPool,
 };
@@ -22,7 +22,7 @@ impl SqlXUserRepository {
 
 #[async_trait]
 impl UserRepository for SqlXUserRepository {
-    async fn create(&self, user: &User) -> Result<User, RepositoryError> {
+    async fn create(&self, user: &User) -> RepositoryResult<User> {
         let row = sqlx::query_as::<_, UserEntity>(
             r#"
             INSERT INTO users (email, password, name)
@@ -45,7 +45,7 @@ impl UserRepository for SqlXUserRepository {
         Ok(row.to_domain())
     }
 
-    async fn find_by_email(&self, email: &str) -> Result<Option<User>, RepositoryError> {
+    async fn find_by_email(&self, email: &str) -> RepositoryResult<Option<User>> {
         let row = sqlx::query_as::<_, UserEntity>(
             r#"
             SELECT
@@ -71,7 +71,7 @@ impl UserRepository for SqlXUserRepository {
         }
     }
 
-    async fn find_by_id(&self, id: &str) -> Result<Option<User>, RepositoryError> {
+    async fn find_by_id(&self, id: &str) -> RepositoryResult<Option<User>> {
         let row = sqlx::query_as::<_, UserEntity>(
             r#"
             SELECT

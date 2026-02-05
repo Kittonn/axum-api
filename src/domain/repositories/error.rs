@@ -25,3 +25,5 @@ pub enum RepositoryError {
     #[error("Data conversion error: {0}")]
     ConversionError(String),
 }
+
+pub type RepositoryResult<T> = Result<T, RepositoryError>;
