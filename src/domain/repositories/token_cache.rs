@@ -1,4 +1,4 @@
-use crate::domain::repositories::error::RepositoryError;
+use crate::domain::repositories::error::RepositoryResult;
 
 use uuid::Uuid;
 
@@ -9,9 +9,8 @@ pub trait TokenCacheRepository: Send + Sync {
         user_id: Uuid,
         token_id: &str,
         ttl_secs: u64,
-    ) -> Result<(), RepositoryError>;
-    async fn get_refresh_token(&self, token_id: &str) -> Result<Option<String>, RepositoryError>;
-    async fn blacklist_access_token(&self, jti: &str, ttl_secs: u64)
-    -> Result<(), RepositoryError>;
-    async fn is_access_token_blacklisted(&self, jti: &str) -> Result<bool, RepositoryError>;
+    ) -> RepositoryResult<()>;
+    async fn get_refresh_token(&self, token_id: &str) -> RepositoryResult<Option<String>>;
+    async fn blacklist_access_token(&self, jti: &str, ttl_secs: u64) -> RepositoryResult<()>;
+    async fn is_access_token_blacklisted(&self, jti: &str) -> RepositoryResult<bool>;
 }
