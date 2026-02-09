@@ -1,6 +1,13 @@
-use crate::domain::events::{error::KafkaResult, handler::EventHandler, user::UserCreated};
+use crate::adapters::messaging::handler::{EventHandler, KafkaResult};
 use async_trait::async_trait;
+use serde::Deserialize;
 use tracing::info;
+
+#[derive(Deserialize)]
+pub struct UserCreated {
+    pub user_id: String,
+    pub email: String,
+}
 
 #[derive(Default)]
 pub struct WelcomeEmailHandler;

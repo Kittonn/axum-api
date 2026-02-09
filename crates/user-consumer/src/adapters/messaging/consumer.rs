@@ -9,7 +9,7 @@ use rdkafka::{
 };
 use tracing::{error, info, warn};
 
-use crate::domain::events::handler::EventHandler;
+use crate::adapters::messaging::handler::EventHandler;
 
 pub struct KafkaConsumer {
     consumer: StreamConsumer,
