@@ -8,14 +8,17 @@ use crate::{
         messaging::kafka::producer::KafkaProducer,
         persistence::{
             redis::token::AuthTokenCacheRepository,
-            tiberius::repositories::user::TiberiusUserRepository,
+            sqlx::repositories::user::SqlXUserRepository,
+            // tiberius::repositories::user::TiberiusUserRepository,
+            // tiberius::repositories::user::TiberiusUserRepository,
         },
     },
     application::use_cases::{auth::AuthUseCase, user::UserUseCase},
     infra::{
         config::AppConfig,
         kafka::init_kafka_producer,
-        mssql_tiberius::init_mssql_tiberius,
+        mssql_sqlx::init_mssql_db,
+        // mssql_tiberius::init_mssql_tiberius,
         redis::init_redis,
         security::{argon2::Argon2PasswordHasher, jwt::JwtTokenProvider},
     },
@@ -26,16 +29,16 @@ pub async fn init_app_state() -> anyhow::Result<AppState> {
     let hasher = Argon2PasswordHasher::default();
     let token_provider = JwtTokenProvider::new(config.jwt_secret.as_str());
 
-    let mssql_pool = init_mssql_tiberius(&config.mssql).await?;
-    // let mssql_pool = init_mssql_sqlx(&config.mssql).await?;
+    // let mssql_pool = init_mssql_tiberius(&config.mssql).await?;
+    let mssql_pool = init_mssql_db(&config.mssql).await?;
 
     let redis_client = init_redis(&config.redis).await?;
 
     let kafka_producer = init_kafka_producer(&config.kafka_brokers)?;
     let user_event_producer = KafkaProducer::new(kafka_producer);
 
-    // let user_repository = SqlXUserRepository::new(mssql_pool);
-    let user_repository = TiberiusUserRepository::new(mssql_pool);
+    let user_repository = SqlXUserRepository::new(mssql_pool);
+    // let user_repository = TiberiusUserRepository::new(mssql_pool);
 
     let token_cache_repository = AuthTokenCacheRepository::new(redis_client.clone());
 

@@ -22,7 +22,7 @@ pub async fn init_mssql_tiberius(cfg: &MssqlConfig) -> anyhow::Result<TiberiusPo
 
     let manager = ConnectionManager::new(config);
     let pool = Pool::builder()
-        .max_size(10)
+        .max_size(100)
         .connection_timeout(Duration::from_secs(300))
         .build(manager)
         .await?;

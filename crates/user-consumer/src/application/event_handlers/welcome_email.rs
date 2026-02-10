@@ -1,6 +1,13 @@
-use crate::domain::events::{error::KafkaResult, handler::EventHandler, user::UserCreated};
+use crate::adapters::messaging::handler::{EventHandler, KafkaResult};
 use async_trait::async_trait;
+use serde::Deserialize;
 use tracing::info;
+
+#[derive(Deserialize)]
+pub struct UserCreated {
+    pub user_id: String,
+    pub email: String,
+}
 
 #[derive(Default)]
 pub struct WelcomeEmailHandler;
@@ -16,7 +23,7 @@ impl EventHandler for WelcomeEmailHandler {
         );
 
         // Simulate sending email (e.g., call EmailService)
-        tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+        // tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
 
         info!(
             "✅ [Welcome Email] Email sent successfully to {}",
