@@ -8,7 +8,10 @@ pub async fn init_mssql_db(config: &MssqlConfig) -> anyhow::Result<MssqlPool> {
         "sqlserver://{}:{}@{}:{}/{}",
         config.username, config.password, config.host, config.port, config.database
     );
-    let pool = Pool::<Mssql>::connect(&database_url).await?;
+    let pool = sqlx::mssql::MssqlPoolOptions::new()
+        .max_connections(100)
+        .connect(&database_url)
+        .await?;
 
     Ok(pool)
 }

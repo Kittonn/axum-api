@@ -50,6 +50,7 @@ impl AuthUseCase {
         }
 
         let hashed_password = self.hasher.hash_password(password.as_str())?;
+        // let hashed_password = password.clone();
         let user = User::new(email.clone(), hashed_password, name);
         let created_user = self.user_repository.create(&user).await?;
 

@@ -23,7 +23,7 @@ impl EventHandler for WelcomeEmailHandler {
         );
 
         // Simulate sending email (e.g., call EmailService)
-        tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+        // tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
 
         info!(
             "✅ [Welcome Email] Email sent successfully to {}",
