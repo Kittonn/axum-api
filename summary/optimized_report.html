@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Load Test Summary (Optimized)</title>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f0f2f5;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .chart-container {
+      height: 300px;
+      width: 100%;
+    }
+
+    .metric-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .metric-label {
+      font-size: 14px;
+      color: #666;
+    }
+
+    .summary-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .stat-box {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .highlight-green {
+      color: #28a745;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Load Test Results Summary (Optimized)</h1>
+      <p>Significant performance improvement observed.</p>
+    </div>
+
+    <div class="summary-stats">
+      <div class="stat-box">
+        <div class="metric-label">Total Requests</div>
+        <div class="metric-value" id="total-reqs">-</div>
+      </div>
+      <div class="stat-box">
+        <div class="metric-label">RPS</div>
+        <div class="metric-value highlight-green" id="rps">-</div>
+      </div>
+      <div class="stat-box">
+        <div class="metric-label">VUs Max</div>
+        <div class="metric-value" id="vus-max">-</div>
+      </div>
+      <div class="stat-box">
+        <div class="metric-label">Failures</div>
+        <div class="metric-value" id="failures">-</div>
+      </div>
+      <div class="stat-box">
+        <div class="metric-label">Avg Duration</div>
+        <div class="metric-value highlight-green" id="avg-duration">-</div>
+      </div>
+    </div>
+
+    <div class="card-grid">
+      <div class="card">
+        <h3>Response Time Distribution (ms)</h3>
+        <div id="durationChart" class="chart-container"></div>
+      </div>
+      <div class="card">
+        <h3>Success Rate</h3>
+        <div id="gaugeChart" class="chart-container"></div>
+      </div>
+      <div class="card">
+        <h3>Request Timing Breakdown (ms)</h3>
+        <div id="timingChart" class="chart-container"></div>
+      </div>
+      <div class="card">
+        <h3>Iterations</h3>
+        <div id="iterationChart" class="chart-container"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const data = {
+      "root_group": {
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {},
+        "checks": {
+          "status is 200": {
+            "id": "6210a8cd14cd70477eba5c5e4cb3fb5f",
+            "passes": 14945447,
+            "fails": 0,
+            "name": "status is 200",
+            "path": "::status is 200"
+          }
+        },
+        "name": ""
+      },
+      "metrics": {
+        "http_req_sending": {
+          "max": 127.237,
+          "p(90)": 0.029,
+          "p(95)": 0.05,
+          "p(99)": 0.459,
+          "avg": 0.034972979196749125,
+          "min": 0.001,
+          "med": 0.004
+        },
+        "checks": {
+          "passes": 14945447,
+          "fails": 0,
+          "value": 1
+        },
+        "http_req_duration": {
+          "avg": 11.93857834329152,
+          "min": 1.283,
+          "med": 6.34,
+          "max": 1238.749,
+          "p(90)": 16.994,
+          "p(95)": 37.554,
+          "p(99)": 114.66753999999987,
+          "thresholds": {
+            "p(95)<2000": false
+          }
+        },
+        "http_req_connecting": {
+          "med": 0,
+          "max": 73.172,
+          "p(90)": 0,
+          "p(95)": 0,
+          "p(99)": 0,
+          "avg": 0.000689343851676029,
+          "min": 0
+        },
+        "http_req_tls_handshaking": {
+          "p(99)": 0,
+          "avg": 0,
+          "min": 0,
+          "med": 0,
+          "max": 0,
+          "p(90)": 0,
+          "p(95)": 0
+        },
+        "data_sent": {
+          "count": 3198325658,
+          "rate": 5330332.419532171
+        },
+        "data_received": {
+          "count": 4438797759,
+          "rate": 7397704.339257265
+        },
+        "http_req_waiting": {
+          "p(99)": 114.261,
+          "avg": 11.88702159694537,
+          "min": 1.258,
+          "med": 6.318,
+          "max": 1238.741,
+          "p(90)": 16.887,
+          "p(95)": 37.282
+        },
+        "http_reqs": {
+          "count": 14945447,
+          "rate": 24908.095418374633
+        },
+        "http_req_receiving": {
+          "avg": 0.01658376715037434,
+          "min": 0.003,
+          "med": 0.008,
+          "max": 44.413,
+          "p(90)": 0.019,
+          "p(95)": 0.028,
+          "p(99)": 0.069
+        },
+        "iteration_duration": {
+          "avg": 11.993830358733117,
+          "min": 1.309458,
+          "med": 6.384542,
+          "max": 1238.775458,
+          "p(90)": 17.062667,
+          "p(95)": 37.64152129999986,
+          "p(99)": 114.96130481999995
+        },
+        "iterations": {
+          "count": 14945447,
+          "rate": 24908.095418374633
+        },
+        "dropped_iterations": {
+          "count": 54554,
+          "rate": 90.91974548864344
+        },
+        "http_req_duration{expected_response:true}": {
+          "max": 1238.749,
+          "p(90)": 16.994,
+          "p(95)": 37.554,
+          "p(99)": 114.66753999999987,
+          "avg": 11.93857834329152,
+          "min": 1.283,
+          "med": 6.34
+        },
+        "http_req_failed": {
+          "passes": 0,
+          "fails": 14945447,
+          "thresholds": {
+            "rate<0.01": false
+          },
+          "value": 0
+        },
+        "vus": {
+          "min": 84,
+          "max": 5000,
+          "value": 116
+        },
+        "vus_max": {
+          "value": 5000,
+          "min": 1900,
+          "max": 5000
+        },
+        "http_req_blocked": {
+          "p(95)": 0.003,
+          "p(99)": 0.005,
+          "avg": 0.001958560222610603,
+          "min": 0,
+          "med": 0.001,
+          "max": 73.199,
+          "p(90)": 0.002
+        }
+      }
+    };
+
+    // Populate Summary Stats
+    document.getElementById('total-reqs').textContent = data.metrics.http_reqs.count.toLocaleString();
+    document.getElementById('rps').textContent = data.metrics.http_reqs.rate.toFixed(2);
+    document.getElementById('vus-max').textContent = data.metrics.vus_max.value;
+    const totalChecks = data.metrics.checks.passes + data.metrics.checks.fails;
+    document.getElementById('failures').textContent = data.metrics.checks.fails.toLocaleString();
+    document.getElementById('avg-duration').textContent = data.metrics.http_req_duration.avg.toFixed(2) + ' ms';
+
+
+    // 1. Duration Distribution Chart
+    const durationChart = echarts.init(document.getElementById('durationChart'));
+    const durationOption = {
+      tooltip: { trigger: 'axis' },
+      xAxis: {
+        type: 'category',
+        data: ['Min', 'Median', 'Avg', 'p90', 'p95', 'p99', 'Max']
+      },
+      yAxis: {
+        type: 'value',
+        name: 'Time (ms)'
+      },
+      series: [{
+        data: [
+          data.metrics.http_req_duration.min,
+          data.metrics.http_req_duration.med,
+          data.metrics.http_req_duration.avg,
+          data.metrics.http_req_duration['p(90)'],
+          data.metrics.http_req_duration['p(95)'],
+          data.metrics.http_req_duration['p(99)'],
+          data.metrics.http_req_duration.max
+        ],
+        type: 'bar',
+        itemStyle: { color: '#28a745' }, // Green for optimized
+        label: {
+          show: true,
+          position: 'top',
+          formatter: '{c}'
+        }
+      }]
+    };
+    durationChart.setOption(durationOption);
+
+    // 2. Success Rate Gauge
+    const gaugeChart = echarts.init(document.getElementById('gaugeChart'));
+    const passRate = totalChecks > 0 ? (data.metrics.checks.passes / totalChecks) * 100 : 0;
+    const gaugeOption = {
+      series: [{
+        type: 'gauge',
+        startAngle: 180,
+        endAngle: 0,
+        min: 0,
+        max: 100,
+        splitNumber: 5,
+        progress: {
+          show: true,
+          width: 18
+        },
+        pointer: {
+          show: false
+        },
+        axisLine: {
+          lineStyle: {
+            width: 18
+          }
+        },
+        axisTick: {
+          show: false
+        },
+        splitLine: {
+          length: 15,
+          lineStyle: {
+            width: 2,
+            color: '#999'
+          }
+        },
+        axisLabel: {
+          distance: 25,
+          color: '#999',
+          fontSize: 20
+        },
+        anchor: {
+          show: true,
+          showAbove: true,
+          size: 25,
+          itemStyle: {
+            borderWidth: 10
+          }
+        },
+        title: {
+          show: false
+        },
+        detail: {
+          valueAnimation: true,
+          fontSize: 40,
+          offsetCenter: [0, '30%'],
+          formatter: '{value}%'
+        },
+        data: [{ value: passRate.toFixed(2) }]
+      }]
+    };
+    gaugeChart.setOption(gaugeOption);
+
+    // 3. Breakdown of Timing
+    const timingChart = echarts.init(document.getElementById('timingChart'));
+    const timingOption = {
+      tooltip: { trigger: 'item' },
+      legend: { top: '5%', left: 'center' },
+      series: [{
+        name: 'Time Breakdown',
+        type: 'pie',
+        radius: ['40%', '70%'],
+        avoidLabelOverlap: false,
+        itemStyle: {
+          borderRadius: 10,
+          borderColor: '#fff',
+          borderWidth: 2
+        },
+        label: {
+          show: false,
+          position: 'center'
+        },
+        emphasis: {
+          label: {
+            show: true,
+            fontSize: 20,
+            fontWeight: 'bold'
+          }
+        },
+        labelLine: { show: false },
+        data: [
+          { value: data.metrics.http_req_connecting.avg, name: 'Connecting' },
+          { value: data.metrics.http_req_sending.avg, name: 'Sending' },
+          { value: data.metrics.http_req_waiting.avg, name: 'Waiting (TTFB)' },
+          { value: data.metrics.http_req_receiving.avg, name: 'Receiving' },
+          { value: data.metrics.http_req_blocked.avg, name: 'Blocked' }
+        ]
+      }]
+    };
+    timingChart.setOption(timingOption);
+
+    // 4. Iterations vs Dropped
+    const iterationChart = echarts.init(document.getElementById('iterationChart'));
+    const iterationOption = {
+      tooltip: { trigger: 'axis' },
+      xAxis: { type: 'category', data: ['Iterations', 'Dropped'] },
+      yAxis: { type: 'value' },
+      series: [{
+        data: [
+          { value: data.metrics.iterations.count, itemStyle: { color: '#91cc75' } },
+          { value: data.metrics.dropped_iterations.count, itemStyle: { color: '#ee6666' } }
+        ],
+        type: 'bar',
+        label: {
+          show: true,
+          position: 'top'
+        }
+      }]
+    };
+    iterationChart.setOption(iterationOption);
+
+    // Resize charts on window resize
+    window.addEventListener('resize', () => {
+      durationChart.resize();
+      gaugeChart.resize();
+      timingChart.resize();
+      iterationChart.resize();
+    });
+  </script>
+</body>
+
+</html>
