@@ -9,7 +9,7 @@ export const options = {
       executor: "constant-arrival-rate",
       rate: 25000,
       timeUnit: "1s",
-      duration: "10m",
+      duration: "1m",
       preAllocatedVUs: 1000,
       maxVUs: 5000,
     },

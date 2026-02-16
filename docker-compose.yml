@@ -98,6 +98,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    deploy:
+      resources:
+        limits:
+            cpus: '4'
+            memory: 8G
     networks:
       - kafka-net
 
@@ -130,6 +135,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8G
     networks:
       - kafka-net
 
@@ -162,6 +172,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8G
     networks:
       - kafka-net
 
@@ -177,6 +192,34 @@ services:
       - kafka1
       - kafka2
       - kafka3
+    networks:
+      - kafka-net
+
+  envoy-server:
+    image: envoyproxy/envoy:v1.31-latest
+    container_name: envoy-server
+    ports:
+      - "10000:10000/udp"
+      - "9901:9901"
+    volumes:
+      - ./envoy/envoy-server.yaml:/etc/envoy/envoy.yaml
+      - ./envoy/certs:/etc/envoy/certs
+    security_opt:
+      - label=disable
+    networks:
+      - kafka-net
+
+  envoy-client:
+    image: envoyproxy/envoy:v1.31-latest
+    container_name: envoy-client
+    ports:
+      - "9090:9091"
+      - "9902:9901"
+    volumes:
+      - ./envoy/envoy-client.yaml:/etc/envoy/envoy.yaml
+      - ./envoy/certs:/etc/envoy/certs
+    security_opt:
+      - label=disable
     networks:
       - kafka-net
 

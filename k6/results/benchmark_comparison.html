@@ -1,0 +1,118 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Kafka Benchmark Comparison: TCP vs QUIC</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        .chart-container { width: 60%; margin: 20px auto; }
+        h1, h2 { text-align: center; }
+        .file-info { text-align: center; font-size: 0.9em; color: #666; }
+    </style>
+</head>
+<body>
+    <h1>Benchmark Comparison: TCP vs QUIC</h1>
+    <div class="file-info">
+        <p>TCP Source: k6_summary_TCP_20260215_233156.json</p>
+        <p>QUIC Source: k6_summary_QUIC_20260215_233156.json</p>
+    </div>
+    
+    <div class="chart-container">
+        <canvas id="rpsChart"></canvas>
+    </div>
+    
+    <div class="chart-container">
+        <canvas id="latencyChart"></canvas>
+    </div>
+
+    <script>
+        const rpsData = {
+            labels: ['RPS (higher is better)'],
+            datasets: [
+                {
+                    label: 'TCP',
+                    data: [24979.757369068422],
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'QUIC',
+                    data: [24989.999087402142],
+                    backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }
+            ]
+        };
+
+        const latencyData = {
+            labels: ['Avg', 'P95', 'P99', 'Max'],
+            datasets: [
+                {
+                    label: 'TCP',
+                    data: [
+                        6.755832879454337,
+                        10.38,
+                        16.693709999999985,
+                        100.875
+                    ],
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'QUIC',
+                    data: [
+                        6.199854201997853,
+                        9.243,
+                        14.122,
+                        61.061
+                    ],
+                    backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }
+            ]
+        };
+
+        const commonOptions = {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        };
+
+        new Chart(document.getElementById('rpsChart'), {
+            type: 'bar',
+            data: rpsData,
+            options: {
+                ...commonOptions,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Throughput (Requests Per Second)'
+                    }
+                }
+            }
+        });
+
+        new Chart(document.getElementById('latencyChart'), {
+            type: 'bar',
+            data: latencyData,
+            options: {
+                ...commonOptions,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Latency (ms) - Lower is better'
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+    

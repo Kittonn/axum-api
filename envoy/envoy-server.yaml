@@ -1,0 +1,66 @@
+admin:
+  address:
+    socket_address:
+      protocol: TCP
+      address: 0.0.0.0
+      port_value: 9901
+static_resources:
+  listeners:
+    - name: listener_quic
+      address:
+        socket_address:
+          protocol: UDP
+          address: 0.0.0.0
+          port_value: 10000
+      udp_listener_config:
+        quic_options: {}
+        downstream_socket_config: {}
+      filter_chains:
+        - transport_socket:
+            name: envoy.transport_sockets.quic
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.transport_sockets.quic.v3.QuicDownstreamTransport
+              downstream_tls_context:
+                common_tls_context:
+                  tls_certificates:
+                    - certificate_chain:
+                        filename: "/etc/envoy/certs/server.crt"
+                      private_key:
+                        filename: "/etc/envoy/certs/server.key"
+          filters:
+            - name: envoy.filters.network.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                stat_prefix: ingress_h3
+                codec_type: HTTP3
+                use_remote_address: true
+                route_config:
+                  name: local_route
+                  virtual_hosts:
+                    - name: local_service
+                      domains: ["*"]
+                      routes:
+                        - match:
+                            connect_matcher: {}
+                          route:
+                            cluster: service_kafka
+                            upgrade_configs:
+                              - upgrade_type: CONNECT
+                http_filters:
+                  - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+  clusters:
+    - name: service_kafka
+      connect_timeout: 0.25s
+      type: STRICT_DNS
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: service_kafka
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: kafka1
+                      port_value: 29092
